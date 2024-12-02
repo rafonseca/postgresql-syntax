@@ -1,3 +1,5 @@
+{-# LANGUAGE NoFieldSelectors #-}
+
 -- |
 -- Names for nodes mostly resemble the according definitions in the @gram.y@
 -- original Postgres parser file, except for the cases where we can optimize on that.
@@ -256,8 +258,13 @@ data SelectWithParens
 --   |  with_clause select_clause opt_sort_clause for_locking_clause opt_select_limit
 --   |  with_clause select_clause opt_sort_clause select_limit opt_for_locking_clause
 -- @
-data SelectNoParens
-  = SelectNoParens (Maybe WithClause) SelectClause (Maybe SortClause) (Maybe SelectLimit) (Maybe ForLockingClause)
+data SelectNoParens = SelectNoParens
+  { with    :: Maybe WithClause
+  , select  :: SelectClause
+  , sort    :: Maybe SortClause
+  , limit   :: Maybe SelectLimit
+  , locking :: Maybe ForLockingClause
+  }
   deriving (Show, Generic, Eq, Ord)
 
 -- |
@@ -285,7 +292,15 @@ type SelectClause = Either SimpleSelect SelectWithParens
 --   |  select_clause EXCEPT all_or_distinct select_clause
 -- @
 data SimpleSelect
-  = NormalSimpleSelect (Maybe Targeting) (Maybe IntoClause) (Maybe FromClause) (Maybe WhereClause) (Maybe GroupClause) (Maybe HavingClause) (Maybe WindowClause)
+  = NormalSimpleSelect
+  { targeting :: Maybe Targeting
+  , into :: Maybe IntoClause
+  , from :: Maybe FromClause
+  , where' :: Maybe WhereClause
+  , group :: Maybe GroupClause
+  , having ::Maybe HavingClause
+  , window ::Maybe WindowClause
+  }
   | ValuesSimpleSelect ValuesClause
   | TableSimpleSelect RelationExpr
   | BinSimpleSelect SelectBinOp SelectClause (Maybe Bool) SelectClause
@@ -357,7 +372,10 @@ data SelectBinOp = UnionSelectBinOp | IntersectSelectBinOp | ExceptSelectBinOp
 --   |  WITH_LA cte_list
 --   |  WITH RECURSIVE cte_list
 -- @
-data WithClause = WithClause Bool (NonEmpty CommonTableExpr)
+data WithClause = WithClause
+  { recursive :: Bool
+  , ctes      :: NonEmpty CommonTableExpr
+  }
   deriving (Show, Generic, Eq, Ord)
 
 -- |
@@ -370,7 +388,12 @@ data WithClause = WithClause Bool (NonEmpty CommonTableExpr)
 --   | NOT MATERIALIZED
 --   | EMPTY
 -- @
-data CommonTableExpr = CommonTableExpr Ident (Maybe (NonEmpty Ident)) (Maybe Bool) PreparableStmt
+data CommonTableExpr = CommonTableExpr
+  { name         :: Ident
+  , columns      :: Maybe (NonEmpty Ident)
+  , materialized :: Maybe Bool
+  , statement    :: PreparableStmt
+  }
   deriving (Show, Generic, Eq, Ord)
 
 type IntoClause = OptTempTableName
