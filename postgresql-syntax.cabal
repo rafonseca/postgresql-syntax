@@ -72,10 +72,9 @@ library
     PostgresqlSyntax.Parsing
     PostgresqlSyntax.Rendering
     PostgresqlSyntax.Validation
-
+    PostgresqlSyntax.Extras.HeadedMegaparsec
   other-modules:
     PostgresqlSyntax.CharSet
-    PostgresqlSyntax.Extras.HeadedMegaparsec
     PostgresqlSyntax.Extras.NonEmpty
     PostgresqlSyntax.Extras.TextBuilder
     PostgresqlSyntax.Predicate
